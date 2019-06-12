@@ -7,5 +7,3 @@ __sapper__
 sapper
 runtime.js
 !rollup.config.js
-/runtime/app.mjs
-/runtime/server.mjs
