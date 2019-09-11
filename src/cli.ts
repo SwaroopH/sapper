@@ -29,7 +29,7 @@ prog.command('dev')
 	.option('--src', 'Source directory', 'src')
 	.option('--routes', 'Routes directory', 'src/routes')
 	.option('--static', 'Static files directory', 'static')
-	.option('--output', 'Sapper output directory', 'src/node_modules/@sapper')
+	.option('--output', 'Sapper intermediate file output directory', 'src/node_modules/@sapper')
 	.option('--build-dir', 'Development build directory', '__sapper__/dev')
 	.option('--ext', 'Custom Route Extension', '.svelte .html')
 	.action(async (opts: {
@@ -153,8 +153,8 @@ prog.command('build [dest]')
 	.option('--cwd', 'Current working directory', '.')
 	.option('--src', 'Source directory', 'src')
 	.option('--routes', 'Routes directory', 'src/routes')
-	.option('--output', 'Sapper output directory', 'src/node_modules/@sapper')
-	.option('--ext', 'Custom Route Extension', '.svelte .html')
+	.option('--output', 'Sapper intermediate file output directory', 'src/node_modules/@sapper')
+	.option('--ext', 'Custom page route extensions (space separated)', '.svelte .html')
 	.example(`build custom-dir -p 4567`)
 	.action(async (dest = '__sapper__/build', opts: {
 		port: string,
@@ -194,6 +194,7 @@ prog.command('export [dest]')
 	.describe('Export your app as static files (if possible)')
 	.option('--build', '(Re)build app before exporting', true)
 	.option('--basepath', 'Specify a base path')
+	.option('--host', 'Host header to use when crawling site')
 	.option('--concurrent', 'Concurrent requests', 8)
 	.option('--timeout', 'Milliseconds to wait for a page (--no-timeout to disable)', 5000)
 	.option('--legacy', 'Create separate legacy build')
@@ -202,14 +203,16 @@ prog.command('export [dest]')
 	.option('--src', 'Source directory', 'src')
 	.option('--routes', 'Routes directory', 'src/routes')
 	.option('--static', 'Static files directory', 'static')
-	.option('--output', 'Sapper output directory', 'src/node_modules/@sapper')
+	.option('--output', 'Sapper intermediate file output directory', 'src/node_modules/@sapper')
 	.option('--build-dir', 'Intermediate build directory', '__sapper__/build')
-	.option('--ext', 'Custom Route Extension', '.svelte .html')
+	.option('--ext', 'Custom page route extensions (space separated)', '.svelte .html')
+	.option('--entry', 'Custom entry points (space separated)', '/')
 	.action(async (dest = '__sapper__/export', opts: {
 		build: boolean,
 		legacy: boolean,
 		bundler?: 'rollup' | 'webpack',
 		basepath?: string,
+		host?: string,
 		concurrent: number,
 		timeout: number | false,
 		cwd: string,
@@ -219,6 +222,7 @@ prog.command('export [dest]')
 		output: string,
 		'build-dir': string,
 		ext: string
+		entry: string
 	}) => {
 		try {
 			if (opts.build) {
@@ -236,8 +240,10 @@ prog.command('export [dest]')
 				build_dir: opts['build-dir'],
 				export_dir: dest,
 				basepath: opts.basepath,
+				host_header: opts.host,
 				timeout: opts.timeout,
 				concurrent: opts.concurrent,
+				entry: opts.entry,
 
 				oninfo: event => {
 					console.log(colors.bold().cyan(`> ${event.message}`));
@@ -262,7 +268,7 @@ prog.command('export [dest]')
 		}
 	});
 
-prog.parse(process.argv);
+prog.parse(process.argv, { unknown: (arg: string) => `Unknown option: ${arg}` });
 
 
 async function _build(
