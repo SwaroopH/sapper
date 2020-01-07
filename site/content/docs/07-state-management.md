@@ -14,7 +14,7 @@ Inside a component, get references to the stores like so:
 ```
 
 * `preloading` contains a readonly boolean value, indicating whether or not a navigation is pending
-* `page` contains a readonly `{ path, params, query }` object, identical to that passed to `preload` functions
+* `page` contains a readonly `{ host, path, params, query }` object, identical to that passed to `preload` functions
 * `session` contains whatever data was seeded on the server. It is a [writable store](https://svelte.dev/tutorial/writable-stores), meaning you can update it with new data (for example, after the user logs in) and your app will be refreshed
 
 
@@ -26,7 +26,7 @@ On the server, you can populate `session` by passing an option to `sapper.middle
 // src/server.js
 express() // or Polka, or a similar framework
 	.use(
-		serve('assets'),
+		serve('static'),
 		authenticationMiddleware(),
 		sapper.middleware({
 			session: (req, res) => ({

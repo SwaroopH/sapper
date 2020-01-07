@@ -1,6 +1,6 @@
 # sapper
 
-[Military-grade progressive web apps, powered by Svelte.](https://sapper.svelte.dev)
+[The next small thing in web development, powered by Svelte.](https://sapper.svelte.dev)
 
 
 ## What is Sapper?
@@ -40,7 +40,7 @@ Pull requests are encouraged and always welcome. [Pick an issue](https://github.
 To install and work on Sapper locally:
 
 ```bash
-git clone git@github.com:sveltejs/sapper.git
+git clone https://github.com/sveltejs/sapper.git
 cd sapper
 npm install
 npm run dev

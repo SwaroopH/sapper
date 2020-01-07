@@ -1,9 +1,6 @@
 .DS_Store
-yarn.lock
-yarn-error.log
 node_modules
-cypress/screenshots
 __sapper__
-sapper
-runtime.js
-!rollup.config.js
+dist
+/runtime/app.mjs
+/runtime/server.mjs
