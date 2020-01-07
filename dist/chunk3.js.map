@@ -1,0 +1,1 @@
+{"version":3,"file":"chunk3.js","sources":["../src/config/env.ts"],"sourcesContent":["export let dev: boolean;\nexport let src: string;\nexport let dest: string;\n\nexport const set_dev = (_: boolean) => dev = _;\nexport const set_src = (_: string) => src = _;\nexport const set_dest = (_: string) => dest = _;"],"names":[],"mappings":";;;AAKA;AACA;;;;;;"}
