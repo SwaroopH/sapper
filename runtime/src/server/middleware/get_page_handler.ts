@@ -107,34 +107,36 @@ export function get_page_handler(
 			fetch: (url: string, opts?: any) => {
 				const parsed = new URL.URL(url, `http://127.0.0.1:${process.env.PORT}${req.baseUrl ? req.baseUrl + '/' :''}`);
 
-				if (opts) {
-					opts = Object.assign({}, opts);
+				opts = Object.assign({}, opts);
 
-					const include_cookies = (
-						opts.credentials === 'include' ||
-						opts.credentials === 'same-origin' && parsed.origin === `http://127.0.0.1:${process.env.PORT}`
+				const include_credentials = (
+					opts.credentials === 'include' ||
+					opts.credentials !== 'omit' && parsed.origin === `http://127.0.0.1:${process.env.PORT}`
+				);
+
+				if (include_credentials) {
+					opts.headers = Object.assign({}, opts.headers);
+
+					const cookies = Object.assign(
+						{},
+						cookie.parse(req.headers.cookie || ''),
+						cookie.parse(opts.headers.cookie || '')
 					);
 
-					if (include_cookies) {
-						opts.headers = Object.assign({}, opts.headers);
+					const set_cookie = res.getHeader('Set-Cookie');
+					(Array.isArray(set_cookie) ? set_cookie : [set_cookie]).forEach(str => {
+						const match = /([^=]+)=([^;]+)/.exec(<string>str);
+						if (match) cookies[match[1]] = match[2];
+					});
 
-						const cookies = Object.assign(
-							{},
-							cookie.parse(req.headers.cookie || ''),
-							cookie.parse(opts.headers.cookie || '')
-						);
+					const str = Object.keys(cookies)
+						.map(key => `${key}=${cookies[key]}`)
+						.join('; ');
 
-						const set_cookie = res.getHeader('Set-Cookie');
-						(Array.isArray(set_cookie) ? set_cookie : [set_cookie]).forEach(str => {
-							const match = /([^=]+)=([^;]+)/.exec(<string>str);
-							if (match) cookies[match[1]] = match[2];
-						});
+					opts.headers.cookie = str;
 
-						const str = Object.keys(cookies)
-							.map(key => `${key}=${cookies[key]}`)
-							.join('; ');
-
-						opts.headers.cookie = str;
+					if (!opts.headers.authorization && req.headers.authorization) {
+						opts.headers.authorization = req.headers.authorization;
 					}
 				}
 
@@ -264,7 +266,7 @@ export function get_page_handler(
 				session: session && try_serialize(session, err => {
 					throw new Error(`Failed to serialize session data: ${err.message}`);
 				}),
-				error: error && try_serialize(props.error)
+				error: error && serialize_error(props.error)
 			};
 
 			let script = `__SAPPER__={${[
@@ -372,6 +374,20 @@ function try_serialize(data: any, fail?: (err) => void) {
 		if (fail) fail(err);
 		return null;
 	}
+}
+
+// Ensure we return something truthy so the client will not re-render the page over the error
+function serialize_error(error: Error | { message: string }) {
+	if (!error) return null;
+	let serialized = try_serialize(error);
+	if (!serialized) {
+		const { name, message, stack } = error as Error;
+		serialized = try_serialize({ name, message, stack });
+	}
+	if (!serialized) {
+		serialized = '{}';
+	}
+	return serialized;
 }
 
 function escape_html(html: string) {
